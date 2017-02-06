@@ -8,9 +8,19 @@
 #include "uproc.h"
 #include "spinlock.h"
 
+struct StateLists {
+struct proc* runnable;
+struct proc* unused;
+struct proc* sleep;
+struct proc* zombie;
+struct proc* running;
+struct proc* embryo;
+};
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
+  struct StateLists pLists;
 } ptable;
 
 static struct proc *initproc;
@@ -38,23 +48,37 @@ allocproc(void)
   struct proc *p;
   char *sp;
 
+  #ifndef CS333_P3P4
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == UNUSED)
       goto found;
   release(&ptable.lock);
+  #else
+  acquire(&ptable.lock);
+  if((p = removefromhead(&ptable.pLists.unused)) != 0)
+    goto found;
+
+  release(&ptable.lock);
   return 0;
+  #endif
 
 found:
   p->state = EMBRYO;
+  addtohead(p, &ptable.pLists.embryo, EMBRYO);
   p->pid = nextpid++;
   release(&ptable.lock);
 
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
+    acquire(&ptable.lock);
     p->state = UNUSED;
+    remove(p, &ptable.pLists.embryo);
+    addtohead(p, &ptable.pLists.unused, UNUSED);
+    release(&ptable.lock);
     return 0;
   }
+  
   sp = p->kstack + KSTACKSIZE;
   
   // Leave room for trap frame.
@@ -83,6 +107,26 @@ userinit(void)
 {
   struct proc *p;
   extern char _binary_initcode_start[], _binary_initcode_size[];
+
+  acquire(&ptable.lock);
+
+  ptable.pLists.embryo = 0;
+  ptable.pLists.runnable = 0;
+  ptable.pLists.sleep = 0;
+  ptable.pLists.zombie = 0;
+  ptable.pLists.running = 0;
+
+  ptable.pLists.unused = ptable.proc;
+  struct proc * curr = ptable.pLists.unused;
+
+  for(int i = 0; i < NPROC; i++) {
+    curr->next = &curr[i + 1];
+    curr = curr->next;
+  }
+
+  curr->next = 0;
+
+  release(&ptable.lock);
   
   p = allocproc();
   initproc = p;
@@ -102,7 +146,11 @@ userinit(void)
   safestrcpy(p->name, "initcode", sizeof(p->name));
   p->cwd = namei("/");
 
+  acquire(&ptable.lock);
+  remove(p, &ptable.pLists.embryo);
   p->state = RUNNABLE;
+  addtotail(p, &ptable.pLists.runnable, RUNNABLE);
+  release(&ptable.lock);
   p->gid = GID;
   p->uid = UID;
 }
@@ -145,6 +193,7 @@ fork(void)
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
+    addtohead(np, &ptable.pLists.unused, UNUSED);
     return -1;
   }
   np->sz = proc->sz;
@@ -251,6 +300,7 @@ wait(void)
         p->kstack = 0;
         freevm(p->pgdir);
         p->state = UNUSED;
+        addtohead(p, &ptable.pLists.unused, UNUSED);
         p->pid = 0;
         p->parent = 0;
         p->name[0] = 0;
@@ -570,4 +620,75 @@ getuproc(uint max, struct uproc * u)
 
 	release(&ptable.lock);
 	return count;
+}
+
+
+int freedump() {
+
+  acquire(&ptable.lock);
+  struct proc * curr = ptable.pLists.unused;
+
+  int count = 0;
+
+  if(!curr)
+    return 0;
+
+  while(curr->next)
+  {
+    count++;
+    curr = curr->next;
+  }
+
+  cprintf("Number of unused processes is: %d\n", count);
+
+  release(&ptable.lock);
+
+  return 0;
+}
+
+struct proc * removefromhead(struct proc ** list) {
+  struct proc * proc = *list;
+  *list = (*list)->next;
+  return proc;
+}
+
+void addtohead(struct proc * p, struct proc ** list, enum procstate state) {
+  if(p->state != state)
+    panic("Incorrect state, cannot add to head");
+  p->next = *list;
+  (*list) = p;
+
+  return;
+
+}
+
+void remove(struct proc * p, struct proc ** list) {
+
+  struct proc ** i = list;
+
+  while((*i) != p && (*i) != 0) {
+    (*i) = (*i)->next;
+  }
+
+  if((*i) == p) {
+    (*i) = p->next;
+    return;
+  }
+  
+  panic("Could not find process to remove!");
+
+  return;
+}
+
+void addtotail(struct proc * p, struct proc ** list, enum procstate state) {
+  if(p->state != state)
+    panic("Incorrect state, cannot add to tail");
+  
+  while((*list))
+    list = &(*list)->next;
+
+  (*list) = p;
+  p->next = 0;
+
+  return;
 }

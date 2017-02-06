@@ -9,6 +9,7 @@ struct spinlock;
 struct stat;
 struct superblock;
 struct uproc;
+enum procstate;
 
 // bio.c
 void            binit(void);
@@ -108,6 +109,7 @@ int             pipewrite(struct pipe*, char*, int);
 struct proc*    copyproc(struct proc*);
 void            exit(void);
 int             fork(void);
+int 			freedump(void);
 int 			getuproc(uint, struct uproc*);
 int             growproc(int);
 int             kill(int);
@@ -121,9 +123,12 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 
+struct proc *	removefromhead(struct proc **);
+void 			addtohead(struct proc *, struct proc **, enum procstate);
+void 			remove(struct proc *, struct proc **);
+void			addtotail(struct proc *, struct proc **, enum procstate);	
 // swtch.S
 void            swtch(struct context**, struct context*);
-
 // spinlock.c
 void            acquire(struct spinlock*);
 void            getcallerpcs(void*, uint*);

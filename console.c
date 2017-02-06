@@ -189,7 +189,7 @@ struct {
 void
 consoleintr(int (*getc)(void))
 {
-  int c, doprocdump = 0;
+  int c, doprocdump = 0, dofreedump = 0;
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
@@ -209,6 +209,8 @@ consoleintr(int (*getc)(void))
         input.e--;
         consputc(BACKSPACE);
       }
+    case C('F'):
+      dofreedump = 1;
       break;
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
@@ -226,6 +228,9 @@ consoleintr(int (*getc)(void))
   release(&cons.lock);
   if(doprocdump) {
     procdump();  // now call procdump() wo. cons.lock held
+  }
+  if(dofreedump) {
+    freedump();
   }
 }
 
