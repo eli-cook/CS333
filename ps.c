@@ -17,11 +17,11 @@ main(int argc, char *argv[])
 	else
 	{
 
-		printf(1,"PID 	Name 	UID 	GID 	Parent ID 	Elapsed   CPU	State 	Size\n");
+		printf(1,"PID 	Name 	UID 	GID 	Parent ID 	Prio 	Elapsed   CPU	State 	Size\n");
 
 		for(int i = 0; i < num; i++)
 		{
-			printf(1,"%d 	%s 	%d 	%d 	%d 		%d.%d%d 	  %d.%d%d 	%s 	%d\n", u[i].pid, u[i].name, u[i].uid, u[i].gid, u[i].ppid, (u[i].elapsed_ticks/100), ((u[i].elapsed_ticks%100)/10), (u[i].elapsed_ticks%10), (u[i].CPU_total_ticks/100), ((u[i].CPU_total_ticks%100)/10), (u[i].CPU_total_ticks%10), u[i].state, u[i].size);
+			printf(1,"%d 	%s 	%d 	%d 	%d 		%d	%d.%d%d 	  %d.%d%d 	%s 	%d\n", u[i].pid, u[i].name, u[i].uid, u[i].gid, u[i].ppid, u[i].prio, (u[i].elapsed_ticks/100), ((u[i].elapsed_ticks%100)/10), (u[i].elapsed_ticks%10), (u[i].CPU_total_ticks/100), ((u[i].CPU_total_ticks%100)/10), (u[i].CPU_total_ticks%10), u[i].state, u[i].size);
 		}
 	}
 

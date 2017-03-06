@@ -94,7 +94,9 @@ int sys_halt(void){
   return 0;
 }
 
-//student added
+/**
+ * [Eli] Fills in date struct for date console command.
+ */
 int
 sys_date(void) //P1
 {
@@ -107,19 +109,27 @@ sys_date(void) //P1
   return 0;
 }
 
+/** 
+ * [Eli] Returns UID of process.
+ */
 int 
 sys_getuid(void) //P2
 {
   return proc->uid;
 }
 
-
+/** 
+ * [Eli] Returns GID of process.
+ */
 int
 sys_getgid(void) //P2
 {
   return proc->gid;
 }
 
+/**
+ * [Eli] Returns PPID of process, unless process is init, which is its own parent.
+ */
 int
 sys_getppid(void) //P2
 {
@@ -129,6 +139,9 @@ sys_getppid(void) //P2
     return proc->parent->pid;
 }
 
+/**
+ * [Eli] Sets UID of process.
+ */
 int 
 sys_setuid(void) //P2
 {
@@ -141,6 +154,9 @@ sys_setuid(void) //P2
   return 0;
 }
 
+/**
+ * [Eli] Sets GID of process.
+ */
 int
 sys_setgid(void) //P2
 {
@@ -153,6 +169,9 @@ sys_setgid(void) //P2
   return 0;
 }
 
+/**
+ * [Eli] Returns list of paired down processes, called uprocs.
+ */
 int sys_getprocs(void)
 {
   int max;
@@ -162,4 +181,19 @@ int sys_getprocs(void)
   if(argptr(1, (void*) &u, sizeof(*u)) < 0)
     return -1;
   return getuproc(max, u);
+}
+
+int sys_setpriority(void)
+{
+  int pid;
+  int priority;
+
+  if(argint(0, &pid) < 0)
+    return -1;
+  if(argint(1, &priority) < 0)
+    return -1;
+  if((priority < 0) || (priority > MAX - 1))
+    return -1;
+  proc->prio = priority;
+  return setprio(pid, priority);
 }

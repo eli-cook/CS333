@@ -440,3 +440,15 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int sys_chmod(char *pathname, int mode) {
+  return 0;
+}
+
+int sys_chown(char *pathname, int owner) {
+  return 0;
+}
+
+int sys_chgrp(char *pathname, int owner) {
+  return 0;
+}

@@ -1,0 +1,8 @@
+addtotail(proc, &ptable.pLists.runnable, RUNNABLE);
+
+addtohead(p, &ptable.pLists.running, RUNNING);
+
+if((p = removefromhead(&ptable.pLists.runnable)) != 0)
+
+remove(proc, &ptable.pLists.running);
+

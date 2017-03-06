@@ -115,18 +115,23 @@ int             growproc(int);
 int             kill(int);
 void            pinit(void);
 void            procdump(void);
+int 			runnabledump(void);
 void            scheduler(void) __attribute__((noreturn));
 void            sched(void);
+int 			setprio(int pid, int prio);
 void            sleep(void*, struct spinlock*);
+int 			sleepdump(void);
 void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+int				zombiedump(void);
 
-struct proc *	removefromhead(struct proc **);
+struct proc *	removefromhead(struct proc **, enum procstate);
 void 			addtohead(struct proc *, struct proc **, enum procstate);
-void 			remove(struct proc *, struct proc **);
-void			addtotail(struct proc *, struct proc **, enum procstate);	
+void 			remove(struct proc *, struct proc **, enum procstate);
+void			addtotail(struct proc *, struct proc **, enum procstate);
+void			promoterunnable(void);	
 // swtch.S
 void            swtch(struct context**, struct context*);
 // spinlock.c

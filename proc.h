@@ -72,6 +72,8 @@ struct proc {
   uint gid;
   uint cpu_ticks_total;
   uint cpu_ticks_in;
+  int prio;
+  int budget;
 
   struct proc * next;
 };

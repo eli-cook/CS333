@@ -189,13 +189,25 @@ struct {
 void
 consoleintr(int (*getc)(void))
 {
-  int c, doprocdump = 0, dofreedump = 0;
+  int c, doprocdump = 0, dofreedump = 0, dorunnabledump = 0, dosleepdump = 0, dozombiedump = 0;
 
   acquire(&cons.lock);
   while((c = getc()) >= 0){
     switch(c){
     case C('P'):  // Process listing.
       doprocdump = 1;   // procdump() locks cons.lock indirectly; invoke later
+      break;
+    case C('F'):
+      dofreedump = 1;
+      break;
+    case C('R'):
+      dorunnabledump = 1;
+      break;
+    case C('S'):
+      dosleepdump = 1;
+      break;
+    case C('Z'):
+      dozombiedump = 1;
       break;
     case C('U'):  // Kill line.
       while(input.e != input.w &&
@@ -209,8 +221,6 @@ consoleintr(int (*getc)(void))
         input.e--;
         consputc(BACKSPACE);
       }
-    case C('F'):
-      dofreedump = 1;
       break;
     default:
       if(c != 0 && input.e-input.r < INPUT_BUF){
@@ -232,6 +242,12 @@ consoleintr(int (*getc)(void))
   if(dofreedump) {
     freedump();
   }
+  if(dorunnabledump)
+    runnabledump();
+  if(dosleepdump)
+    sleepdump();
+  if(dozombiedump)
+    zombiedump();
 }
 
 int

@@ -33,6 +33,10 @@ uint getppid(void);
 int setuid(uint);
 int setgid(uint);
 int getprocs(uint max, struct uproc* table);
+int setpriority(int pid, int priority);
+int chmod(char *pathname, int mode);
+int chown(char *pathname, int owner);
+int chgrp(char *pathname, int owner);	
 
 // ulib.c
 int stat(char*, struct stat*);

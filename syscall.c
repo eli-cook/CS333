@@ -107,6 +107,10 @@ extern int sys_getppid(void);
 extern int sys_setuid(void);
 extern int sys_setgid(void);
 extern int sys_getprocs(void);
+extern int sys_setpriority(void);
+extern int sys_chmod(void);
+extern int sys_chown(void);
+extern int sys_chgrp(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -137,10 +141,17 @@ static int (*syscalls[])(void) = {
 [SYS_getppid] sys_getppid,
 [SYS_setuid]  sys_setuid,
 [SYS_setgid]  sys_setgid,
-[SYS_getprocs] sys_getprocs
+[SYS_getprocs] sys_getprocs,
+[SYS_setpriority] sys_setpriority,
+[SYS_chmod]   sys_chmod,
+[SYS_chown]   sys_chown,
+[SYS_chgrp]   sys_chgrp,
 };
 
 // put data structure for printing out system call invocation information here
+
+// [Eli] This structure is used to relate the syscall number with the associated string description
+// for printing in the syscall() defined below.
 #ifdef PRINT_SYSCALLS
 static char * syscallnames[] = {
 [SYS_fork] "fork",
@@ -171,10 +182,19 @@ static char * syscallnames[] = {
 [SYS_getppid]"getppid",
 [SYS_setuid]"setuid",
 [SYS_setgid]"setgid",
-[SYS_getprocs]"getprocs"
+[SYS_getprocs]"getprocs",
+[SYS_setpriority]"setpriority",
+[SYS_chmod]"chmod",
+[SYS_chown]"chown",
+[SYS_chgrp]"chgrp",
 };
 
 #endif
+
+/**
+ * [Eli] syscall() prints the number for each sycall that is called during operation of the OS.
+ * It uses the syscall names defined above to link the printed string to the called syscall.
+ */
 void
 syscall(void)
 {
@@ -183,7 +203,7 @@ syscall(void)
   num = proc->tf->eax;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     proc->tf->eax = syscalls[num]();
-// code went below
+
     #ifdef PRINT_SYSCALLS
     cprintf("\n%s -> %d\n", syscallnames[num], proc->tf->eax);
     #endif

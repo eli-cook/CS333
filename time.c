@@ -2,6 +2,11 @@
 #include "user.h"
 
 
+/**
+ * [Eli] The time command is ran with a console command as its argument. Using a fork(), then exec() to launch the inputted console command,
+ * after setting the start time, it waits for the command to finish. The function then sets the end time and prints
+ * the time it took the console command to run.
+ */
 int time(char * argv[])
 {
 	int time_in;
@@ -13,14 +18,14 @@ int time(char * argv[])
 
 	time_in = uptime();
 	fork();
-
+	// Child branch from fork. Run inputted console command.
 	if(pid != getpid())
 	{
 		exec(argv[0], &argv[0]);
 		printf(1, "Not a valid command");
 		exit();
 	}	
-
+	// Parent branch from fork. Wait for child process to finish.
 	if(pid == getpid() && check == 0)
 	{
 		wait();
