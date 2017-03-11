@@ -7,6 +7,9 @@
 #include "x86.h"
 #include "elf.h"
 
+#include "fs.h"
+#include "file.h"
+
 int
 exec(char *path, char **argv)
 {
@@ -17,6 +20,9 @@ exec(char *path, char **argv)
   struct inode *ip;
   struct proghdr ph;
   pde_t *pgdir, *oldpgdir;
+#ifdef CS333_P5
+  int uid = -1;
+#endif
 
   begin_op();
   if((ip = namei(path)) == 0){
@@ -25,6 +31,19 @@ exec(char *path, char **argv)
   }
   ilock(ip);
   pgdir = 0;
+#ifdef CS333_P5
+  if(ip->uid == proc->uid && ip->mode.flags.u_x == 1) {}
+  else if(ip->gid == proc->gid && ip->mode.flags.g_x == 1) {}
+  else if(ip->mode.flags.o_x == 1) {}
+  else {
+    goto bad;
+  }
+
+
+  if(ip->mode.flags.setuid == 1) {
+    uid = ip->uid;
+  }
+#endif
 
   // Check ELF header
   if(readi(ip, (char*)&elf, 0, sizeof(elf)) < sizeof(elf))
@@ -92,6 +111,11 @@ exec(char *path, char **argv)
   proc->sz = sz;
   proc->tf->eip = elf.entry;  // main
   proc->tf->esp = sp;
+#ifdef CS333_P5
+  if(uid != -1) {
+    proc->uid = uid;
+  }
+#endif
   switchuvm(proc);
   freevm(oldpgdir);
   return 0;

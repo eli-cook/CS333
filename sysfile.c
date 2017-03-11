@@ -441,14 +441,96 @@ sys_pipe(void)
   return 0;
 }
 
-int sys_chmod(char *pathname, int mode) {
+#ifdef CS333_P5
+
+int sys_chmod(void) {
+
+  int mode;
+  char * filepath;
+  struct inode* info = 0;
+
+  if(argint(1, &mode) < 0)
+    return -1;
+  if(mode > 32767 || mode < 0)
+    return -1;
+
+  begin_op();
+
+  if(argstr(0, &filepath) < 0 || (info = namei(filepath)) == 0){
+    end_op();
+    return -1;
+  }
+
+  ilock(info);
+
+  info->mode.asInt = mode;
+
+  iupdate(info);
+
+  iunlock(info);
+
+  end_op();
+
   return 0;
 }
 
-int sys_chown(char *pathname, int owner) {
+int sys_chown(void) {
+  
+  int uid;
+  char * filepath;
+  struct inode* info = 0;
+
+  if(argint(1, &uid) < 0)
+    return -1;
+  if(uid > 32767 || uid < 0)
+    return -1;
+
+  begin_op();
+
+  if(argstr(0, &filepath) < 0 || (info = namei(filepath)) == 0){
+    end_op();
+    return -1;
+  }
+
+  ilock(info);
+
+  info->uid = uid;
+  iupdate(info);
+
+  iunlock(info);
+  end_op();
+
   return 0;
 }
 
-int sys_chgrp(char *pathname, int owner) {
+int sys_chgrp(void) {
+  
+  int gid;
+  char * filepath;
+  struct inode* info = 0;
+
+  if(argint(1, &gid) < 0)
+    return -1;
+  if(gid > 32767 || gid < 0)
+    return -1;
+
+  begin_op();
+
+  if(argstr(0, &filepath) < 0 || (info = namei(filepath)) == 0){
+    end_op();
+    return -1;
+  }
+
+  ilock(info);
+
+  info->gid = gid;
+  iupdate(info);
+
+  iunlock(info);
+
+  end_op();
+
   return 0;
 }
+
+#endif

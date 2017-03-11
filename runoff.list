@@ -86,3 +86,9 @@ uproc.h
 time.c
 testuidgid.c
 zombieFree.c
+chmod.c
+chown.c
+chgrp.c
+p5-test.c
+p5-test.h
+testsetuid.c
