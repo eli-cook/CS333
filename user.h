@@ -38,7 +38,7 @@ int setpriority(int pid, int priority);
 #ifdef CS333_P5
 int chmod(char *pathname, int mode);
 int chown(char *pathname, int owner);
-int chgrp(char *pathname, int owner);	
+int chgrp(char *pathname, int group);	
 #endif
 
 // ulib.c
